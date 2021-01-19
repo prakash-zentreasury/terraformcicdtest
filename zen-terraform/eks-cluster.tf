@@ -24,6 +24,25 @@ resource "aws_iam_role" "demo-cluster" {
 POLICY
 }
 
+resource "aws_iam_role" "eks-cicd" {
+  name = "EksWorkshopCodeBuildKubectlRole"
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::${var.aws-acc-id}:root"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+POLICY
+}
+
 resource "aws_iam_role_policy_attachment" "demo-cluster-AmazonEKSClusterPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
   role       = aws_iam_role.demo-cluster.name
@@ -76,3 +95,19 @@ resource "aws_eks_cluster" "demo" {
     aws_iam_role_policy_attachment.demo-cluster-AmazonEKSVPCResourceController,
   ]
 }
+
+data "aws_eks_cluster" "example" {
+  name = aws_eks_cluster.demo.id
+}
+
+data "aws_eks_cluster_auth" "example" {
+  name = aws_eks_cluster.demo.id
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.example.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.example.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.example.token
+  load_config_file       = false
+}
+

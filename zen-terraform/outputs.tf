@@ -18,9 +18,12 @@ data:
       groups:
         - system:bootstrappers
         - system:nodes
+    - rolearn: ${aws_iam_role.eks-cicd.arn}
+      username: build
+      groups:
+        - system:master
 CONFIGMAPAWSAUTH
-
-  kubeconfig = <<KUBECONFIG
+  kubeconfig = <<-KUBECONFIG
 
 
 apiVersion: v1
@@ -56,4 +59,19 @@ output "config_map_aws_auth" {
 
 output "kubeconfig" {
   value = local.kubeconfig
+}
+
+output "prov_token_64" {
+  value = data.aws_eks_cluster_auth.example.token
+}
+
+output "demo_ca_64" {
+  value = aws_eks_cluster.demo.certificate_authority[0].data
+}
+
+
+
+
+output "prov_ca" {
+  value = data.aws_eks_cluster.example.certificate_authority[0].data
 }

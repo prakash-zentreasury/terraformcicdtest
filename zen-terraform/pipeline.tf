@@ -39,11 +39,29 @@ resource "aws_codebuild_project" "tf-apply" {
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "CODEBUILD"
     privileged_mode             = true
+
+
+    environment_variable {
+      name = "EKS_KUBECTL_ROLE_ARN"  
+      value  = var.eks-role
+    } 
+    environment_variable {
+      name = "REPOSITORY_URI"  
+      value  = var.repo
+    }     
+    environment_variable {
+      name = "EKS_CLUSTER_NAME"  
+      value  = var.cluster-name
+    }
+    environment_variable {
+      name = "region"  
+      value  = var.aws_region
+    }
  }
  source {
      type   = "CODEPIPELINE"
      buildspec = file("buildspec/apply-buildspec.yml")
- }
+ }                       
 }
 
 
@@ -67,8 +85,8 @@ resource "aws_codepipeline" "cicd_pipeline" {
             version = "1"
             output_artifacts = ["tf-code"]
             configuration = {
-                FullRepositoryId = "tsushan822/terraformcicdtest"
-                BranchName   = "master"
+                FullRepositoryId = var.git-repo
+                BranchName   = var.git-banch
                 ConnectionArn = var.codestar_connector_credentials
                 OutputArtifactFormat = "CODE_ZIP"
             }

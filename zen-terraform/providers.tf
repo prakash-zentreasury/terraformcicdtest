@@ -2,7 +2,6 @@ terraform {
   required_version = ">= 0.12"
 }
 
-
 data "aws_availability_zones" "available" {}
 
 # Not required: currently used in conjunction with using
